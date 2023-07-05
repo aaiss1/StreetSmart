@@ -1,0 +1,7 @@
+{
+    "configuration": "cpu=atmega328old",
+    "board": "arduino:avr:nano",
+    "programmer": "avrisp",
+    "port": "COM6",
+    "sketch": "Guest_Wireless\\Guest_Wireless.ino"
+}
