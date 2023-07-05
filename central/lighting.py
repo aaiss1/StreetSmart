@@ -28,7 +28,7 @@ ARROW_RIGHT = [22, 65, 23, 64, 18, 19, 68, 69, 24, 25, 26, 27, 28, 29, 30, 31, 3
  
 # Light the whole panel red
 def brake_lights_on(strip):
-    for i in range(88):
+    for i in range(LED_COUNT):
         strip.setPixelColor(i, Color(255, 0, 0, 0))
     strip.show()
  
@@ -87,11 +87,10 @@ if __name__ == '__main__':
  
     try:
         while True:
-            #signal_on(strip, "LEFT")
-            brake_lights_on(strip)
+            signal_on(strip, "LEFT")
+            #brake_lights_on(strip)
  
     except KeyboardInterrupt:
- 
-        if args.clear:
- 
-            colorWipe(strip, Color(0,0,0), 10)
+        for i in range(LED_COUNT):
+            strip.setPixelColor(i, Color(0, 0, 0, 0))
+        strip.show()
