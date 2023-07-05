@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: RF24
+Version: 1.4.7
+Summary: UNKNOWN
+Home-page: UNKNOWN
+License: GPLv2
+Description: 
+        .. warning:: This python wrapper for the RF24 C++ library was not intended
+            for distribution on pypi.org. If you're reading this, then this package
+            is likely unauthorized or unofficial.
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: C++
+Classifier: License :: OSI Approved :: GNU General Public License v2 (GPLv2)
+Description-Content-Type: text/x-rst
