@@ -52,7 +52,7 @@ void setup() {
 
   // Open a writing and reading pipe on each radio, with opposite addresses
   radio.openWritingPipe(addresses[0]);
-  radio.openReadingPipe(1, addresses[1]);
+  radio.openReadingPipe(1, 0xE0E0F1F1E0LL);
 
   // Start the radio listening for data
   radio.startListening();
@@ -66,27 +66,27 @@ void loop() {
   // This is what we receive from the other device (the transmitter)
   unsigned char data;
 // NEED TO CHANGE THIS CODE TO NON BLOCKING INTERRUPT BASED
-  // // Is there any data for us to get?
-  // if (radio.available()) {
+  // Is there any data for us to get?
+  if (radio.available()) {
 
-  //   // Go and read the data and put it into that variable
-  //   while (radio.available()) {
-  //     radio.read(&data, sizeof(char));
-  //   }
+    // Go and read the data and put it into that variable
+    while (radio.available()) {
+      radio.read(&data, sizeof(char));
+    }
+    Serial.println(data);
+    // No more data to get so send it back but add 1 first just for kicks
+    // First, stop listening so we can talk
+    radio.stopListening();
+    data++;
+    radio.write(&data, sizeof(char));
 
-  //   // No more data to get so send it back but add 1 first just for kicks
-  //   // First, stop listening so we can talk
-  //   radio.stopListening();
-  //   data++;
-  //   radio.write(&data, sizeof(char));
+    // Now, resume listening so we catch the next packets.
+    radio.startListening();
 
-  //   // Now, resume listening so we catch the next packets.
-  //   radio.startListening();
-
-  //   // Tell the user what we sent back (the random numer + 1)
-  //   Serial.print("Sent response ");
-  //   Serial.println(data);
-  // }
+    // Tell the user what we sent back (the random numer + 1)
+    Serial.print("Sent response ");
+    Serial.println(data);
+  }
 
   Serial.println(turn);
   if(turn){
