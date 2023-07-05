@@ -27,6 +27,11 @@ sudo python3 setup.py build
 sudo python3 setup.py install
 sudo apt-get install python3-dev python3-rpi.gpio
 
-In this, we are using 
-CSN_PIN = 0  # connected to GPIO8// ITS THE RASPI's CE PIN # 0
+On the Raspberry Side, the COMM Connections are
+CSN_PIN = 0  # connected to GPIO8// ITS THE RASPI's CE PIN #
 CE_PIN = 17  # connected to GPIO17
+
+The hierachy is 
+lighting.py -------> main.py
+
+run sudo python3 main.py
