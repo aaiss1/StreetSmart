@@ -8,5 +8,25 @@ sudo python3 -m pip install --force-reinstall adafruit-blinka
 
 sudo apt-get install python-dev python3-dev -y
 sudo pip3 install --upgrade RPi.GPIO
-sudo rfkill block wifi
-sudo rfkill block bluetooth
+
+
+
+mkdir ~/rf24libs
+cd ~/rf24libs
+git clone https://github.com/TMRh20/RF24
+cd ~/rf24libs/RF24
+./configure
+sudo make install
+#Choose the SPIDEV Option
+sudo apt-get install python3-dev libboost-python-dev
+#Use ldconfig -p | grep libboost_python to find the number after libboost_python
+sudo ln -s $(ls /usr/lib/arm-linux-gnueabihf/libboost_python3*.so | tail -1) /usr/lib/arm-linux-gnueabihf/libboost_python3.so
+sudo apt-get install python3-setuptools
+cd pyRF24/
+sudo python3 setup.py build
+sudo python3 setup.py install
+sudo apt-get install python3-dev python3-rpi.gpio
+
+In this, we are using 
+CSN_PIN = 0  # connected to GPIO8// ITS THE RASPI's CE PIN # 0
+CE_PIN = 17  # connected to GPIO17
