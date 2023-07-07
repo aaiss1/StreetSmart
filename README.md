@@ -32,6 +32,10 @@ CSN_PIN = 0  # connected to GPIO8// ITS THE RASPI's CE PIN #
 CE_PIN = 17  # connected to GPIO17
 
 The hierachy is 
-lighting.py -------> main.py
+LEVEL 0: global_vars.py
+LEVEL 1: main.py
+LEVEL 2: lighting.py    comm.py     accel.py    distance.py           
 
 run sudo python3 main.py
+
+CTRL C to kill

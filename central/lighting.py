@@ -58,13 +58,15 @@ def signal_on(direction):
  
     
 def update_lights():
-    while not global_vars.kill_light_thread:
+    while not global_vars.kill_light_thread.is_set():
         if(global_vars.turn == -1):
             signal_on( "LEFT")
         elif(global_vars.turn == 1):
             signal_on("RIGHT")
         else:
             brake_lights_on()
+    lights_off()
+    print("Lights Killed")
             
 
 # Main program logic follows:
