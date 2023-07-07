@@ -1,7 +1,7 @@
 {
-    "port": "COM5",
     "configuration": "cpu=atmega328old",
     "board": "arduino:avr:nano",
     "programmer": "avrisp",
-    "sketch": "Guest_Wireless\\Guest_Wireless.ino"
+    "port": "COM5",
+    "sketch": "haptic\\Guest_Wireless\\Guest_Wireless.ino"
 }

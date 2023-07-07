@@ -12,16 +12,16 @@ volatile int turn = 0;
 // 1 = turn left
 // -1 = turn right
 
+volatile int haptic = 0;
+// 0  = do nothing
+// 1 = vibrate
+long vibration_time = 600;
+volatile unsigned long last_vib_micros;
+int haptic_drive = 0;
+
 // These are used for interrupt button handling
 long debouncing_time = 300; // Debouncing Time in Milliseconds
 volatile unsigned long last_micros;
-
-/*
- * See documentation at https://nRF24.github.io/RF24
- * See License information at root directory of this library
- * Author: Brendan Doherty (2bndy5)
- */
-
 /**
  * A simple example of sending data from 1 nRF24L01 transceiver to another
  * with Acknowledgement (ACK) payloads attached to ACK packets.
@@ -54,8 +54,8 @@ bool role = false; // true = TX role, false = RX role
 // Make a data structure to store the entire payload of different datatypes
 struct PayloadStruct
 {
-  char message[7]; // only using 6 characters for TX & ACK payloads
-  int counter;
+  char message[9];
+  int stat;
 };
 PayloadStruct payload;
 
@@ -107,24 +107,11 @@ void setup()
   // set the RX address of the TX node into a RX pipe
   radio.openReadingPipe(1, address[!radioNumber]); // using pipe 1
 
-  // additional setup specific to the node's role
-  if (role)
-  {
-    // setup the TX payload
+  memcpy(payload.message, "Turn: ", 6); // set the payload message
+  // load the payload for the first received transmission on pipe 0
+  radio.writeAckPayload(1, &payload, sizeof(payload));
 
-    memcpy(payload.message, "Hello ", 6); // set the payload message
-    radio.stopListening();                // put radio in TX mode
-  }
-  else
-  {
-    // setup the ACK payload & load the first response into the FIFO
-
-    memcpy(payload.message, "World ", 6); // set the payload message
-    // load the payload for the first received transmission on pipe 0
-    radio.writeAckPayload(1, &payload, sizeof(payload));
-
-    radio.startListening(); // put radio in RX mode
-  }
+  radio.startListening(); // put radio in RX mode
 
   // For debugging info
   // printf_begin();             // needed only once for printing details
@@ -147,36 +134,27 @@ void loop()
     Serial.print(pipe); // print the pipe number
     Serial.print(F(": "));
     Serial.print(received.message); // print incoming message
-    Serial.print(received.counter); // print incoming counter
+    Serial.print(received.stat); // print incoming status
+    haptic = received.stat;
+
+    if(haptic){ //Drives the Haptic Motor if Haptic Enabled
+      Serial.print(F("  !!!Haptic Enabled!!!  "));
+
+      if ((long)(micros() - last_vib_micros) >= vibration_time * 1000)
+      {
+        digitalWrite(MOTOR_CTRL, haptic_drive);
+        haptic_drive = !haptic_drive;
+        last_micros = micros();
+      }
+    }
+
+    //Load the Payload Acknowledgement
+    payload.stat = turn;
+    radio.writeAckPayload(1, &payload, sizeof(payload));
     Serial.print(F(" Sent: "));
     Serial.print(payload.message);   // print outgoing message
-    Serial.println(payload.counter); // print outgoing counter
-
-    // save incoming counter & increment for next outgoing
-    payload.counter = turn;
-    // load the payload for the first received transmission on pipe 0
-    radio.writeAckPayload(1, &payload, sizeof(payload));
-  } // role
-
-  if (Serial.available())
-  {
-    // change the role via the serial monitor
-    // Become the RX node
-
-    Serial.println(F("*** CHANGING TO RECEIVE ROLE -- PRESS 'T' TO SWITCH BACK"));
-    memcpy(payload.message, "World ", 6); // change payload message
-
-    // load the payload for the first received transmission on pipe 0
-    radio.writeAckPayload(1, &payload, sizeof(payload));
-    radio.startListening();
+    Serial.println(payload.stat); // print outgoing counter
   }
-
-  // Serial.println(turn);
-  // if(turn){
-  //   digitalWrite(MOTOR_CTRL, 1);
-  // }else{
-  //   digitalWrite(MOTOR_CTRL, 0);
-  // }
 } // loop
 
 void left_ISR()
