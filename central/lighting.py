@@ -37,7 +37,7 @@ def lights_off():
         strip.setPixelColor(i, Color(0, 0, 0, 0))
     strip.show()
  
-# Light the right or left side of the panel (arrow), backdrop yellow
+# Light the right or left side of the panel red (arrow), backdrop yellow
 def signal_on(direction):
     arrow = ARROW_LEFT
  
@@ -60,7 +60,7 @@ def signal_on(direction):
 def update_lights():
     while not global_vars.kill_light_thread.is_set():
         if(global_vars.turn == -1):
-            signal_on( "LEFT")
+            signal_on("LEFT")
         elif(global_vars.turn == 1):
             signal_on("RIGHT")
         else:
