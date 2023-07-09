@@ -1,5 +1,8 @@
 import smbus					#import SMBus module of I2C
 from time import sleep          #import
+import math
+import global_vars
+import threading
 
 #some MPU6050 Registers and their Address
 PWR_MGMT_1   = 0x6B
@@ -14,9 +17,21 @@ GYRO_XOUT_H  = 0x43
 GYRO_YOUT_H  = 0x45
 GYRO_ZOUT_H  = 0x47
 
+# Threshold values - we will have to experimentally tune these
+MAG_ACCEL_THRES = 1.0
+Z_ACCEL_THRES = 0
+NO_ACCEL_THRESH = 0.1	# For when we aren't moving (turn brake light on); not used right now
+LIGHT_OFF_DELAY = 0.5
+
+#Helper function which calculates magnitude
+def mag(x): 
+    return math.sqrt(sum(i**2 for i in x))
+
+def brake_light_off(): 
+    global_vars.brake = 1
 
 def MPU_Init():
-	#write to sample rate register
+	#Write to sample rate register
 	bus.write_byte_data(Device_Address, SMPLRT_DIV, 7)
 	
 	#Write to power management register
@@ -50,7 +65,7 @@ Device_Address = 0x68   # MPU6050 device address
 
 MPU_Init()
 
-print (" Reading Data of Gyroscope and Accelerometer")
+# print (" Reading Data of Gyroscope and Accelerometer")
 
 while True:
 	
@@ -72,7 +87,16 @@ while True:
 	Gx = gyro_x/131.0
 	Gy = gyro_y/131.0
 	Gz = gyro_z/131.0
-	
+    
+	# Calculate the resultant acceleration magnitude
+	curr_mag = mag([acc_x, acc_y, acc_z])
+    
+	# If thresh conditions are met, turn on the light
+	if (curr_mag > MAG_ACCEL_THRES and acc_z < Z_ACCEL_THRES):
+		global_vars.brake = 1
+	elif global_vars.brake == 1:  # If thresh conditions aren't met and lights are on, turn off after a delay
+		timer = threading.Timer(LIGHT_OFF_DELAY, brake_light_off)
+		timer.start()
 
-	print ("Gx=%.2f" %Gx, u'\u00b0'+ "/s", "\tGy=%.2f" %Gy, u'\u00b0'+ "/s", "\tGz=%.2f" %Gz, u'\u00b0'+ "/s", "\tAx=%.2f g" %Ax, "\tAy=%.2f g" %Ay, "\tAz=%.2f g" %Az) 	
-	sleep(1)
+	# print ("Gx=%.2f" %Gx, u'\u00b0'+ "/s", "\tGy=%.2f" %Gy, u'\u00b0'+ "/s", "\tGz=%.2f" %Gz, u'\u00b0'+ "/s", "\tAx=%.2f g" %Ax, "\tAy=%.2f g" %Ay, "\tAz=%.2f g" %Az) 	
+	# sleep(0.5 if already_waited else 1)
