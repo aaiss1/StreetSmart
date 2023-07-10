@@ -88,7 +88,7 @@ def start_comm():
             print("Transmission failed or timed out")
         time.sleep(0.1)  # let the RX node prepare a new ACK payload
     end_comm()
-    print("COMMS Killed")
+    print("Comms Killed")
 
 
 def end_comm():

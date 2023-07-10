@@ -36,6 +36,11 @@ def lights_off():
     for i in range(LED_COUNT):
         strip.setPixelColor(i, Color(0, 0, 0, 0))
     strip.show()
+
+def idle_color():
+    for i in range(LED_COUNT):
+        strip.setPixelColor(i, Color(255, 70, 0, 0))
+    strip.show()
  
 # Light the right or left side of the panel red (arrow), backdrop yellow
 def signal_on(direction):
@@ -63,8 +68,11 @@ def update_lights():
             signal_on("LEFT")
         elif(global_vars.turn == 1):
             signal_on("RIGHT")
-        else:
+        elif(global_vars.brake == 1):
             brake_lights_on()
+        else:
+            idle_color()
+        
     lights_off()
     print("Lights Killed")
             
