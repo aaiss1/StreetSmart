@@ -1,0 +1,11 @@
+[Unit]
+Description=Street Smart Main
+After=multi-user.target
+
+[Service]
+User=root
+WorkingDirectory=/home/pi/StreetSmart/central
+ExecStart=sudo python3 main.py
+
+[Install]
+WantedBy=multi-user.target

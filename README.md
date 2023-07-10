@@ -39,3 +39,10 @@ LEVEL 2: lighting.py    comm.py     accel.py    distance.py
 run sudo python3 main.py
 
 CTRL C to kill
+
+How to Run streetsmart on startup
+sudo cp streetSmart.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable streetSmart.service
+sudo systemctl enable streetSmart.service --now
+sudo systemctl disable streetSmart.service
