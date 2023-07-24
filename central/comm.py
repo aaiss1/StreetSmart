@@ -27,17 +27,17 @@ def start_comm():
     radio_number = 0  # uses default value from `parser`
 
     # ACK payloads are dynamically sized.
-    radio.enableDynamicPayloads()  # to use ACK payloads
-
+ #   radio.enableDynamicPayloads()  # to use ACK payloads
+    radio.setPayloadSize(2)
     # to enable the custom ACK payload feature
     radio.enableAckPayload()
 
     # set the Power Amplifier level to -12 dBm since this test example is
     # usually run with nRF24L01 transceivers in close proximity of each other
-    radio.setPALevel(RF24_PA_MIN)  # RF24_PA_MAX is default
+    radio.setPALevel(RF24_PA_HIGH)  # RF24_PA_MAX is default
     
-    radio.setChannel(150)
-
+    radio.setChannel(127)
+    radio.setDataRate(RF24_250KBPS)
     # set the TX address of the RX node into the TX pipe
     radio.openWritingPipe(address[radio_number])  # always uses pipe 0
 
@@ -55,18 +55,18 @@ def start_comm():
     failures = 0
     while not global_vars.kill_comm_thread.is_set():
         # construct a payload to send
-        buffer = b"Haptic: \x00" + global_vars.haptic.to_bytes(2, "little", signed=True)
+        buffer = global_vars.haptic.to_bytes(2, "little", signed=True)
         # send the payload and prompt
         start_timer = time.monotonic_ns()  # start timer
         result = radio.write(buffer)  # save the report
         end_timer = time.monotonic_ns()  # stop timer
         if result:
             # print timer results upon transmission success
-            decoded = buffer[:8].decode("utf-8")
+            #decoded = buffer[:2].decode("utf-8")
             print(
                 "Transmission successful! Time to transmit:",
                 f"{int((end_timer - start_timer) / 1000)} us.",
-                f"Sent: {decoded}{global_vars.haptic}",
+                f"Sent: {global_vars.haptic}",
                 end=" ",
             )
             has_payload, pipe_number = radio.available_pipe()
@@ -74,11 +74,11 @@ def start_comm():
                 # print the received ACK that was automatically sent
                 length = radio.getDynamicPayloadSize()
                 response = radio.read(length)
-                decoded = bytes(response[:6]).decode("utf-8")
-                global_vars.turn = int.from_bytes(bytes(response[9:12]), byteorder='little', signed=True)
+           #     decoded = bytes(response[:1]).decode("utf-8")
+                global_vars.turn = int.from_bytes(bytes(response[:2]), byteorder='little', signed=True)
                 print(
                     f"Received {length} on pipe {pipe_number}:",
-                    f"{decoded}{global_vars.turn}",
+                    f"{global_vars.turn}",
                 )
 
             else:
@@ -86,7 +86,7 @@ def start_comm():
         else:
             failures += 1
             print("Transmission failed or timed out")
-        time.sleep(0.1)  # let the RX node prepare a new ACK payload
+#        time.sleep(0.25)  # let the RX node prepare a new ACK payload
     end_comm()
     print("Comms Killed")
 
