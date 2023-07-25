@@ -26,7 +26,7 @@ max_speckle_size = 200
 
 uniqueness_ratio = 10
 speckle_window_size = 200
-speckle_range = 1
+speckle_range = 2
 
 num_channels = 1 # only 1 channel in the image since its a 2D image
 p1 = 8 * num_channels * block_size ** 2
@@ -34,22 +34,22 @@ p2 = 32 * num_channels * block_size ** 2
 stereo = cv2.StereoSGBM_create(minDisparity=min_disparity, numDisparities=(max_disparity - min_disparity), preFilterCap=16, blockSize=block_size, P1=p1, P2=p2, uniquenessRatio=uniqueness_ratio, speckleWindowSize=speckle_window_size, speckleRange=speckle_range, disp12MaxDiff=1)
 
 # # Q matrix from stereorectification - need to be updated if calibration changes
-persepctive_trans_mat = np.array([[ 1.00000000,  0.00000000,  0.00000000, -18.14719772], 
-                                  [ 0.00000000,  1.00000000, 0.00000000, -232.95205879], 
-                                  [ 0.00000000,  0.00000000,  0.00000000,  526.02867126], 
-                                  [ 0.00000000,  0.00000000,  4.06116344, -0.00000000]]) 
+perspective_trans_mat = np.array([[ 1.00000000,  0.00000000,  0.00000000, -436.40790939], 
+                                  [ 0.00000000,  1.00000000, 0.00000000, -205.38948441], 
+                                  [ 0.00000000,  0.00000000,  0.00000000,  349.15136719], 
+                                  [ 0.00000000,  0.00000000,  4.99776099, -0.00000000]])
 
 
 def check_for_large_obstacles(depth_map, depth_threshold_in_meters):
     mask = cv2.inRange(depth_map, 0, depth_threshold_in_meters) # Filter out depths that are greater depth threshold
 
     # Check if a significantly large obstacle is present and filter out smaller noisy regions
-    if np.sum(mask)/255.0 > 0.01 * mask.shape[0] * mask.shape[1]:
+    if np.sum(mask)/255.0 > 0.05 * mask.shape[0] * mask.shape[1]:
         contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) # Contour detection 
         cnts = sorted(contours, key=cv2.contourArea, reverse=True) # Sort based on size
         
         # Check if largest detected contour is significantly large
-        if cv2.contourArea(cnts[0]) > 0.01 * mask.shape[0] * mask.shape[1]:
+        if cv2.contourArea(cnts[0]) > 0.07 * mask.shape[0] * mask.shape[1]:
             return True
 
     return False
@@ -78,7 +78,7 @@ def start_distance():
                 disparity = cv2.normalize(disparity, disparity, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U) # Scaling down the disparity values and normalizing them - need to /16 and convert to float to get true disparity
 
                 # Determine depth by estimating the XYZ coordinates and extracting z
-                coordinates3d = cv2.reprojectImageTo3D(disparity, persepctive_trans_mat)
+                coordinates3d = cv2.reprojectImageTo3D(disparity, perspective_trans_mat)
                 depth = coordinates3d[:,:,2]
                 # np.set_printoptions(threshold=np.inf)
                 # print(depth)
@@ -89,9 +89,9 @@ def start_distance():
                 
                 if test:
                     if global_vars.haptic:
-                        cv2.putText(disparity, "TOO CLOSE",(400,200),1,3,(255, 0, 0),2,3)
+                        print("too close")
                     else:
-                        cv2.putText(disparity, "SAFE",(400,200),1,3,(255, 0, 0),2,3)
+                        print("safe")
                     cv2.imshow('output', disparity)
 
     kill_cameras()
