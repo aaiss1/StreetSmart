@@ -15,7 +15,7 @@ volatile int turn = 0;
 volatile int haptic = 0;
 // 0  = do nothing
 // 1 = vibrate
-long vibration_time = 600;
+long vibration_time = 100;
 volatile unsigned long last_vib_micros;
 int haptic_drive = 0;
 
@@ -54,17 +54,18 @@ bool role = false; // true = TX role, false = RX role
 // Make a data structure to store the entire payload of different datatypes
 struct PayloadStruct
 {
-  char message[9];
+  // char message[9];
   int stat;
 };
 PayloadStruct payload;
 
 void setup()
 {
-  pinMode(LEFT_SIG, INPUT_PULLUP);  // sets all button interrupts as pull ups
-  pinMode(RIGHT_SIG, INPUT_PULLUP); // sets all button interrupts as pull ups
+  // pinMode(LEFT_SIG, INPUT_PULLUP);  // sets all button interrupts as pull ups
+  // pinMode(RIGHT_SIG, INPUT_PULLUP); // sets all button interrupts as pull ups
 
   pinMode(MOTOR_CTRL, OUTPUT); // sets all button interrupts as pull ups
+  digitalWrite(MOTOR_CTRL, 0);
 
   // attach interrupts to pins
   attachInterrupt(digitalPinToInterrupt(LEFT_SIG), left_ISR, FALLING);
@@ -91,12 +92,12 @@ void setup()
   // Set the PA Level low to try preventing power supply related problems
   // because these examples are likely run with nodes in close proximity to
   // each other.
-  radio.setPALevel(RF24_PA_MIN); // RF24_PA_MAX is default.
-  radio.setChannel(150);
+  radio.setPALevel(RF24_PA_HIGH); // RF24_PA_MAX is default.
+  radio.setChannel(127);
+  radio.setDataRate(RF24_250KBPS);
 
   // to use ACK payloads, we need to enable dynamic payload lengths (for all nodes)
-  radio.enableDynamicPayloads(); // ACK payloads are dynamically sized
-
+  radio.setPayloadSize(2);
   // Acknowledgement packets have no payloads by default. We need to enable
   // this feature for all nodes (TX & RX) to use ACK payloads.
   radio.enableAckPayload();
@@ -107,7 +108,7 @@ void setup()
   // set the RX address of the TX node into a RX pipe
   radio.openReadingPipe(1, address[!radioNumber]); // using pipe 1
 
-  memcpy(payload.message, "Turn: ", 6); // set the payload message
+  // memcpy(payload.message, "Turn: ", 6); // set the payload message
   // load the payload for the first received transmission on pipe 0
   radio.writeAckPayload(1, &payload, sizeof(payload));
 
@@ -133,27 +134,31 @@ void loop()
     Serial.print(F(" bytes on pipe "));
     Serial.print(pipe); // print the pipe number
     Serial.print(F(": "));
-    Serial.print(received.message); // print incoming message
+    // Serial.print(received.message); // print incoming message
     Serial.print(received.stat); // print incoming status
     haptic = received.stat;
 
     if(haptic){ //Drives the Haptic Motor if Haptic Enabled
-      Serial.print(F("  !!!Haptic Enabled!!!  "));
+      // Serial.print(F("  !!!Haptic Enabled!!!  "));
+      haptic = 0;
 
       if ((long)(micros() - last_vib_micros) >= vibration_time * 1000)
       {
         digitalWrite(MOTOR_CTRL, haptic_drive);
         haptic_drive = !haptic_drive;
-        last_micros = micros();
+        last_vib_micros = micros();
       }
+    }else{
+        digitalWrite(MOTOR_CTRL, 0);
     }
 
     //Load the Payload Acknowledgement
     payload.stat = turn;
-    radio.writeAckPayload(1, &payload, sizeof(payload));
     Serial.print(F(" Sent: "));
-    Serial.print(payload.message);   // print outgoing message
+    // Serial.print(payload.message);   // print outgoing message
     Serial.println(payload.stat); // print outgoing counter
+    radio.writeAckPayload(1, &payload, sizeof(payload));
+
   }
 } // loop
 
@@ -174,6 +179,7 @@ void right_ISR()
 { // increments mode selection
   if ((long)(micros() - last_micros) >= debouncing_time * 1000)
   {
+    Serial.println("H");
     turn--;
     if (turn <= -1)
     {
