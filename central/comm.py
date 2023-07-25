@@ -63,12 +63,12 @@ def start_comm():
         if result:
             # print timer results upon transmission success
             #decoded = buffer[:2].decode("utf-8")
-            print(
-                "Transmission successful! Time to transmit:",
-                f"{int((end_timer - start_timer) / 1000)} us.",
-                f"Sent: {global_vars.haptic}",
-                end=" ",
-            )
+            # print(
+            #     "Transmission successful! Time to transmit:",
+            #     f"{int((end_timer - start_timer) / 1000)} us.",
+            #     f"Sent: {global_vars.haptic}",
+            #     end=" ",
+            # )
             has_payload, pipe_number = radio.available_pipe()
             if has_payload:
                 # print the received ACK that was automatically sent
@@ -76,16 +76,16 @@ def start_comm():
                 response = radio.read(length)
            #     decoded = bytes(response[:1]).decode("utf-8")
                 global_vars.turn = int.from_bytes(bytes(response[:2]), byteorder='little', signed=True)
-                print(
-                    f"Received {length} on pipe {pipe_number}:",
-                    f"{global_vars.turn}",
-                )
+                # print(
+                #     f"Received {length} on pipe {pipe_number}:",
+                #     f"{global_vars.turn}",
+                # )
 
-            else:
-                print("Received an empty ACK packet")
+            #else:
+               # print("Received an empty ACK packet")
         else:
             failures += 1
-            print("Transmission failed or timed out")
+           # print("Transmission failed or timed out")
 #        time.sleep(0.25)  # let the RX node prepare a new ACK payload
     end_comm()
     print("Comms Killed")

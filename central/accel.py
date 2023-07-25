@@ -4,6 +4,9 @@ import math
 import global_vars
 import threading
 
+
+timer_running = 0
+
 #some MPU6050 Registers and their Address
 PWR_MGMT_1   = 0x6B
 SMPLRT_DIV   = 0x19
@@ -18,10 +21,10 @@ GYRO_YOUT_H  = 0x45
 GYRO_ZOUT_H  = 0x47
 
 # Threshold values - we will have to experimentally tune these
-MAG_ACCEL_THRES = 1.2
-Z_ACCEL_THRES = 0
+MAG_ACCEL_THRES = 1.1
+Z_ACCEL_THRES = -0.1
 NO_ACCEL_THRESH = 0.1	# For when we aren't moving (turn brake light on); not used right now
-LIGHT_OFF_DELAY = 1
+LIGHT_OFF_DELAY = 2
 
  
 #Helper function which calculates magnitude
@@ -30,6 +33,7 @@ def mag(x):
 
 def brake_light_off(): 
     global_vars.brake = 0
+    timer_running = 0
     timer.cancel()
 
 
@@ -70,7 +74,7 @@ MPU_Init()
 timer = threading.Timer(LIGHT_OFF_DELAY, brake_light_off)
 
 def start_accel():
-    
+	global timer_running
 	while not global_vars.kill_accel_thread.is_set():
 		
 		#Read Accelerometer raw value
@@ -96,12 +100,17 @@ def start_accel():
 		curr_mag = mag([Ax, Ay, Az])
 		
 		# If thresh conditions are met, turn on the light
-		if (curr_mag > MAG_ACCEL_THRES and Az < Z_ACCEL_THRES):
+		if (Az < Z_ACCEL_THRES):
 			global_vars.brake = 1
-		elif global_vars.brake == 1:  # If thresh conditions aren't met and lights are on, turn off after a delay
+			#print ("Gx=%.2f" %Gx, u'\u00b0'+ "/s", "\tGy=%.2f" %Gy, u'\u00b0'+ "/s", "\tGz=%.2f" %Gz, u'\u00b0'+ "/s", "\tAx=%.2f g" %Ax, "\tAy=%.2f g" %Ay, "\tAz=%.2f g" %Az) 	
+			if(timer_running):
+				timer.cancel()
+				timer_running = 0
+		elif global_vars.brake == 1 and timer_running == 0:  # If thresh conditions aren't met and lights are on, turn off after a delay
+			timer_running = 1
 			timer = threading.Timer(LIGHT_OFF_DELAY, brake_light_off)
 			timer.start()
 
-		# print ("Gx=%.2f" %Gx, u'\u00b0'+ "/s", "\tGy=%.2f" %Gy, u'\u00b0'+ "/s", "\tGz=%.2f" %Gz, u'\u00b0'+ "/s", "\tAx=%.2f g" %Ax, "\tAy=%.2f g" %Ay, "\tAz=%.2f g" %Az) 	
-		# sleep(0.5 if already_waited else 1)
+		print ("Gx=%.2f" %Gx, u'\u00b0'+ "/s", "\tGy=%.2f" %Gy, u'\u00b0'+ "/s", "\tGz=%.2f" %Gz, u'\u00b0'+ "/s", "\tAx=%.2f g" %Ax, "\tAy=%.2f g" %Ay, "\tAz=%.2f g" %Az) 	
+		# sleep(0.1)
 	print("Accel Killed")
