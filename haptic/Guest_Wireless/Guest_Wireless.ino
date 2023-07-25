@@ -65,6 +65,7 @@ void setup()
   // pinMode(RIGHT_SIG, INPUT_PULLUP); // sets all button interrupts as pull ups
 
   pinMode(MOTOR_CTRL, OUTPUT); // sets all button interrupts as pull ups
+  digitalWrite(MOTOR_CTRL, 0);
 
   // attach interrupts to pins
   attachInterrupt(digitalPinToInterrupt(LEFT_SIG), left_ISR, FALLING);
@@ -139,6 +140,7 @@ void loop()
 
     if(haptic){ //Drives the Haptic Motor if Haptic Enabled
       // Serial.print(F("  !!!Haptic Enabled!!!  "));
+      haptic = 0;
 
       if ((long)(micros() - last_vib_micros) >= vibration_time * 1000)
       {
@@ -146,6 +148,8 @@ void loop()
         haptic_drive = !haptic_drive;
         last_vib_micros = micros();
       }
+    }else{
+        digitalWrite(MOTOR_CTRL, 0);
     }
 
     //Load the Payload Acknowledgement
