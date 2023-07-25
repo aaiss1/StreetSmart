@@ -5,6 +5,8 @@ import global_vars
 # ------------------------------------------------- #
 #                        SETUP                      #
 # ------------------------------------------------- #
+test = False
+
 file = cv2.FileStorage()
 file.open('include/stereomapping.xml', cv2.FileStorage_READ)
 
@@ -84,8 +86,13 @@ def start_distance():
                 # Perform distance detection
                 depth_thresh = 0.7 # Threshold for SAFE distance in meters - experimentally skewed to account for camera inaccuracy
                 global_vars.haptic = check_for_large_obstacles(depth_map=depth, depth_threshold_in_meters=depth_thresh)
-                    
-                cv2.imshow('output_canvas',disparity)
+                
+                if test:
+                    if global_vars.haptic:
+                        cv2.putText(disparity, "TOO CLOSE",(400,200),1,3,(255, 0, 0),2,3)
+                    else:
+                        cv2.putText(disparity, "SAFE",(400,200),1,3,(255, 0, 0),2,3)
+                    cv2.imshow('output', disparity)
 
     kill_cameras()
 
@@ -94,6 +101,7 @@ def start_distance():
 #This section won't be running during the thread
 if __name__ == '__main__':
     try:
+        test = True
         start_distance()
  
     except KeyboardInterrupt:
