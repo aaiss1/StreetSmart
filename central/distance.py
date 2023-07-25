@@ -33,14 +33,15 @@ p1 = 8 * num_channels * block_size ** 2
 p2 = 32 * num_channels * block_size ** 2
 stereo = cv2.StereoSGBM_create(minDisparity=min_disparity, numDisparities=(max_disparity - min_disparity), preFilterCap=16, blockSize=block_size, P1=p1, P2=p2, uniquenessRatio=uniqueness_ratio, speckleWindowSize=speckle_window_size, speckleRange=speckle_range, disp12MaxDiff=1)
 
-# # Q matrix from stereorectification - need to be updated if calibration changes
+# # Q matrix from stereo rectification - need to be updated if calibration changes
 perspective_trans_mat = np.array([[ 1.00000000,  0.00000000,  0.00000000, -436.40790939], 
                                   [ 0.00000000,  1.00000000, 0.00000000, -205.38948441], 
                                   [ 0.00000000,  0.00000000,  0.00000000,  349.15136719], 
                                   [ 0.00000000,  0.00000000,  4.99776099, -0.00000000]])
 
 
-def check_for_large_obstacles(depth_map, depth_threshold_in_meters):
+def check_for_large_obstacles(depth_map, depth_threshold_in_meters, disparity_map):
+    ret = False
     mask = cv2.inRange(depth_map, 0, depth_threshold_in_meters) # Filter out depths that are greater depth threshold
 
     # Check if a significantly large obstacle is present and filter out smaller noisy regions
@@ -48,11 +49,16 @@ def check_for_large_obstacles(depth_map, depth_threshold_in_meters):
         contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) # Contour detection 
         cnts = sorted(contours, key=cv2.contourArea, reverse=True) # Sort based on size
         
-        # Check if largest detected contour is significantly large
+        # Check if the largest detected contour is significantly large
         if cv2.contourArea(cnts[0]) > 0.07 * mask.shape[0] * mask.shape[1]:
-            return True
+            ret = True
+            if test:
+                cv2.drawContours(disparity_map, cnts, 0, (225, 0, 0), 3)
 
-    return False
+    if test:
+        cv2.imshow('output', disparity_map)
+
+    return ret
 
 def kill_cameras():
     left_capture.release()
@@ -66,7 +72,7 @@ def start_distance():
             success_left, img_left = left_capture.read()
             success_right, img_right = right_capture.read()
             if success_left and success_right :
-                #undistort and recitfy image
+                #undistort and rectify image
                 imgR_gray = cv2.cvtColor(img_right, cv2.COLOR_BGR2GRAY)
                 imgL_gray = cv2.cvtColor(img_left, cv2.COLOR_BGR2GRAY)
                 left_fixed= cv2.remap(imgL_gray, L_x, L_y, cv2.INTER_LANCZOS4, cv2.BORDER_CONSTANT, 0)
@@ -85,14 +91,13 @@ def start_distance():
 
                 # Perform distance detection
                 depth_thresh = 0.7 # Threshold for SAFE distance in meters - experimentally skewed to account for camera inaccuracy
-                global_vars.haptic = check_for_large_obstacles(depth_map=depth, depth_threshold_in_meters=depth_thresh)
-                
+                global_vars.haptic = check_for_large_obstacles(depth_map=depth, depth_threshold_in_meters=depth_thresh, disparity_map=disparity)
+
                 if test:
                     if global_vars.haptic:
                         print("too close")
                     else:
                         print("safe")
-                    cv2.imshow('output', disparity)
 
     kill_cameras()
 
