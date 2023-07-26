@@ -45,16 +45,16 @@ def check_for_large_obstacles(depth_map, depth_threshold_in_meters, disparity_ma
     mask = cv2.inRange(depth_map, 0, depth_threshold_in_meters) # Filter out depths that are greater depth threshold
 
     # Check if a significantly large obstacle is present and filter out smaller noisy regions
-    if np.sum(mask)/255.0 > 0.01 * mask.shape[0] * mask.shape[1]:
+    if np.sum(mask)/255.0 > 0.04 * mask.shape[0] * mask.shape[1]:
         contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) # Contour detection 
         cnts = sorted(contours, key=cv2.contourArea, reverse=True) # Sort based on size
 
         # Check if the largest detected contour is significantly large
-        if cv2.contourArea(cnts[0]) > 0.01 * mask.shape[0] * mask.shape[1]:
+        if cv2.contourArea(cnts[0]) > 0.05 * mask.shape[0] * mask.shape[1]:
             ret = True
             # cv2.drawContours(disparity_map, cnts, 0, (225, 0, 0), 3)
 
-    print("done")
+    print("Obstacle Check Done")
     # cv2.imshow('output', disparity_map)
 
     return ret
@@ -96,11 +96,11 @@ def start_distance():
                 depth_thresh = 0.7 # Threshold for SAFE distance in meters - experimentally skewed to account for camera inaccuracy
                 global_vars.haptic = check_for_large_obstacles(depth_map=depth, depth_threshold_in_meters=depth_thresh, disparity_map=disparity)
 
-                if test:
-                    if global_vars.haptic:
-                        print("too close")
-                    else:
-                        print("safe")
+                if global_vars.haptic:
+                    print("Obstable Too Close")
+                else:
+                    if test:
+                        print("Rider Safe")
 
     kill_cameras()
 

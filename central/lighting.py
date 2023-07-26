@@ -66,10 +66,13 @@ def update_lights():
     while not global_vars.kill_light_thread.is_set():
         if(global_vars.turn == -1):
             signal_on("LEFT")
+            print("Turning Left")
         elif(global_vars.turn == 1):
             signal_on("RIGHT")
+            print("Turning Right")
         elif(global_vars.brake == 1):
             brake_lights_on()
+            print("Braking")
         else:
             idle_color()
         
