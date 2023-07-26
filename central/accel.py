@@ -103,7 +103,6 @@ def start_accel():
 		if delta > Z_AVG_THRES_MIN and delta < Z_AVG_THRES_MAX and Ax < 1.25 and Ax > 0.75 and Ay < 0.3 and Ay > -0.3:
 			if filter_timer == 0:
 				filter_timer = time.time()
-				# print("TIMINF", filter_timer)
 			else:
 				t_delta = time.time() - filter_timer
 				
