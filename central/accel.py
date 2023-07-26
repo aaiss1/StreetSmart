@@ -3,6 +3,8 @@ from time import sleep          #import
 import math
 import global_vars
 import threading
+import numpy
+import time
 
 
 timer_running = 0
@@ -21,9 +23,10 @@ GYRO_YOUT_H  = 0x45
 GYRO_ZOUT_H  = 0x47
 
 # Threshold values - we will have to experimentally tune these
-MAG_ACCEL_THRES = 1.1
-Z_ACCEL_THRES = -0.1
-NO_ACCEL_THRESH = 0.1	# For when we aren't moving (turn brake light on); not used right now
+Z_ACCEL_THRES = -0.3
+Z_AVG_THRES_MIN = 0.3
+Z_AVG_THRES_MAX = 0.8
+TIME_FILTER_THRES = 0.02
 LIGHT_OFF_DELAY = 2
 
  
@@ -75,6 +78,11 @@ timer = threading.Timer(LIGHT_OFF_DELAY, brake_light_off)
 
 def start_accel():
 	global timer_running
+	z_moving_avg = [0]*50
+	# y_moving_avg = [0]*50
+	# x_moving_avg = [1]*50
+	filter_timer = 0
+
 	while not global_vars.kill_accel_thread.is_set():
 		
 		#Read Accelerometer raw value
@@ -82,35 +90,44 @@ def start_accel():
 		acc_y = read_raw_data(ACCEL_YOUT_H)
 		acc_z = read_raw_data(ACCEL_ZOUT_H)
 		
-		#Read Gyroscope raw value
-		gyro_x = read_raw_data(GYRO_XOUT_H)
-		gyro_y = read_raw_data(GYRO_YOUT_H)
-		gyro_z = read_raw_data(GYRO_ZOUT_H)
-		
 		#Full scale range +/- 250 degree/C as per sensitivity scale factor
 		Ax = acc_x/16384.0
 		Ay = acc_y/16384.0
 		Az = acc_z/16384.0
-		
-		Gx = gyro_x/131.0
-		Gy = gyro_y/131.0
-		Gz = gyro_z/131.0
-		
-		# Calculate the resultant acceleration magnitude
-		curr_mag = mag([Ax, Ay, Az])
-		
+
 		# If thresh conditions are met, turn on the light
-		if (Az < Z_ACCEL_THRES):
-			global_vars.brake = 1
-			#print ("Gx=%.2f" %Gx, u'\u00b0'+ "/s", "\tGy=%.2f" %Gy, u'\u00b0'+ "/s", "\tGz=%.2f" %Gz, u'\u00b0'+ "/s", "\tAx=%.2f g" %Ax, "\tAy=%.2f g" %Ay, "\tAz=%.2f g" %Az) 	
-			if(timer_running):
-				timer.cancel()
-				timer_running = 0
+		avg_z = numpy.mean(z_moving_avg)
+		# avg_y = numpy.mean(y_moving_avg)
+		# avg_x = numpy.mean(x_moving_avg)
+		delta = abs(avg_z - Az)
+		if delta > Z_AVG_THRES_MIN and delta < Z_AVG_THRES_MAX and Ax < 1.25 and Ax > 0.75 and Ay < 0.3 and Ay > -0.3:
+			if filter_timer == 0:
+				filter_timer = time.time()
+				# print("TIMINF", filter_timer)
+			else:
+				t_delta = time.time() - filter_timer
+				
+				if t_delta > TIME_FILTER_THRES:
+					print("HELLO", t_delta)
+					global_vars.brake = 1
+					filter_timer = 0
+					if timer_running:
+						timer.cancel()
+						timer_running = 0
 		elif global_vars.brake == 1 and timer_running == 0:  # If thresh conditions aren't met and lights are on, turn off after a delay
 			timer_running = 1
 			timer = threading.Timer(LIGHT_OFF_DELAY, brake_light_off)
 			timer.start()
+		else:
+			filter_timer = 0
 
-		print ("Gx=%.2f" %Gx, u'\u00b0'+ "/s", "\tGy=%.2f" %Gy, u'\u00b0'+ "/s", "\tGz=%.2f" %Gz, u'\u00b0'+ "/s", "\tAx=%.2f g" %Ax, "\tAy=%.2f g" %Ay, "\tAz=%.2f g" %Az) 	
+		print (Az, "\t", avg_z, "\t", Ay, "\t", Ax)
+		z_moving_avg.pop()
+		z_moving_avg.insert(0, Az)
+		# y_moving_avg.pop()
+		# y_moving_avg.insert(0, Ay)
+		# x_moving_avg.pop()
+		# x_moving_avg.insert(0, Ax)
+		 	
 		# sleep(0.1)
 	print("Accel Killed")
