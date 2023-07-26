@@ -120,7 +120,7 @@ def start_accel():
 		else:
 			filter_timer = 0
 
-		print (Az, "\t", avg_z, "\t", Ay, "\t", Ax)
+		# print (Az, "\t", avg_z, "\t", Ay, "\t", Ax)
 		z_moving_avg.pop()
 		z_moving_avg.insert(0, Az)
 		# y_moving_avg.pop()
