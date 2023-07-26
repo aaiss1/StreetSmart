@@ -7,39 +7,6 @@ import global_vars
 # ------------------------------------------------- #
 test = False
 
-file = cv2.FileStorage()
-file.open('/home/pi/StreetSmart/central/include/stereomapping.xml', cv2.FileStorage_READ)
-
-L_x = file.getNode('left_stereo_map_x').mat()
-L_y = file.getNode('left_stereo_map_y').mat()
-R_x = file.getNode('right_stereo_map_x').mat()
-R_y = file.getNode('right_stereo_map_y').mat()
-file.release()
-
-left_capture = cv2.VideoCapture(2)
-right_capture = cv2.VideoCapture(0)
-
-min_disparity = 0
-max_disparity = 16 * 10
-block_size = 7
-max_speckle_size = 200
-
-uniqueness_ratio = 10
-speckle_window_size = 200
-speckle_range = 2
-
-num_channels = 1 # only 1 channel in the image since its a 2D image
-p1 = 8 * num_channels * block_size ** 2
-p2 = 32 * num_channels * block_size ** 2
-stereo = cv2.StereoSGBM_create(minDisparity=min_disparity, numDisparities=(max_disparity - min_disparity), preFilterCap=16, blockSize=block_size, P1=p1, P2=p2, uniquenessRatio=uniqueness_ratio, speckleWindowSize=speckle_window_size, speckleRange=speckle_range, disp12MaxDiff=1)
-
-# # Q matrix from stereo rectification - need to be updated if calibration changes
-perspective_trans_mat = np.array([[ 1.00000000,  0.00000000,  0.00000000, -436.40790939], 
-                                  [ 0.00000000,  1.00000000, 0.00000000, -205.38948441], 
-                                  [ 0.00000000,  0.00000000,  0.00000000,  349.15136719], 
-                                  [ 0.00000000,  0.00000000,  4.99776099, -0.00000000]])
-
-
 def check_for_large_obstacles(depth_map, depth_threshold_in_meters, disparity_map):
     ret = False
     mask = cv2.inRange(depth_map, 0, depth_threshold_in_meters) # Filter out depths that are greater depth threshold
@@ -57,16 +24,43 @@ def check_for_large_obstacles(depth_map, depth_threshold_in_meters, disparity_ma
     print("Obstacle Check Done")
     # cv2.imshow('output', disparity_map)
 
-    return ret
-
-def kill_cameras():
-    left_capture.release()
-    right_capture.release()
-    cv2.destroyAllWindows()
-    cv2.waitKey(1)
-    print("Cameras Off")
+    return ret    
 
 def start_distance():
+    left_capture = cv2.VideoCapture(2)
+    right_capture = cv2.VideoCapture(0)
+    file = cv2.FileStorage()
+    file.open('/home/pi/StreetSmart/central/include/stereomapping.xml', cv2.FileStorage_READ)
+
+    L_x = file.getNode('left_stereo_map_x').mat()
+    L_y = file.getNode('left_stereo_map_y').mat()
+    R_x = file.getNode('right_stereo_map_x').mat()
+    R_y = file.getNode('right_stereo_map_y').mat()
+    file.release()
+
+
+    min_disparity = 0
+    max_disparity = 16 * 10
+    block_size = 7
+    max_speckle_size = 200
+
+    uniqueness_ratio = 10
+    speckle_window_size = 200
+    speckle_range = 2
+
+    num_channels = 1 # only 1 channel in the image since its a 2D image
+    p1 = 8 * num_channels * block_size ** 2
+    p2 = 32 * num_channels * block_size ** 2
+    stereo = cv2.StereoSGBM_create(minDisparity=min_disparity, numDisparities=(max_disparity - min_disparity), preFilterCap=16, blockSize=block_size, P1=p1, P2=p2, uniquenessRatio=uniqueness_ratio, speckleWindowSize=speckle_window_size, speckleRange=speckle_range, disp12MaxDiff=1)
+
+    # # Q matrix from stereo rectification - need to be updated if calibration changes
+    perspective_trans_mat = np.array([[ 1.00000000,  0.00000000,  0.00000000, -436.40790939], 
+                                    [ 0.00000000,  1.00000000, 0.00000000, -205.38948441], 
+                                    [ 0.00000000,  0.00000000,  0.00000000,  349.15136719], 
+                                    [ 0.00000000,  0.00000000,  4.99776099, -0.00000000]])
+
+
+
     while not global_vars.kill_distance_thread.is_set():
         if left_capture.isOpened():
             success_left, img_left = left_capture.read()
@@ -102,16 +96,20 @@ def start_distance():
                     if test:
                         print("Rider Safe")
 
-    kill_cameras()
+    left_capture.release()
+    right_capture.release()
+    cv2.destroyAllWindows()
+    cv2.waitKey(1)
+    print("Cameras Off")
 
 
-# Main program logic follows:
-#This section won't be running during the thread
-if __name__ == '__main__':
-    try:
-        test = True
-        print("Starting Test")
-        start_distance()
+# # Main program logic follows:
+# #This section won't be running during the thread
+# if __name__ == '__main__':
+#     try:
+#         test = True
+#         print("Starting Test")
+#         start_distance()
 
-    except KeyboardInterrupt:
-        kill_cameras()
+#     except KeyboardInterrupt:
+#         kill_cameras()

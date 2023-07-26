@@ -17,6 +17,7 @@ if __name__ == "__main__":
     lighting_thread.start()
     comm_thread.start()
     accel_thread.start()
+    time.sleep(5)
     distance_thread.start()
 
     try:

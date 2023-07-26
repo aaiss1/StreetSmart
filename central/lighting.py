@@ -23,7 +23,6 @@ ARROW_RIGHT = [22, 65, 23, 64, 18, 19, 68, 69, 24, 25, 26, 27, 28, 29, 30, 31, 3
  
 strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
 # Intialize the library (must be called once before other functions).
-strip.begin()
 
 # Light the whole panel red
 def brake_lights_on():
@@ -63,6 +62,8 @@ def signal_on(direction):
  
     
 def update_lights():
+    strip.begin()
+
     while not global_vars.kill_light_thread.is_set():
         if(global_vars.turn == -1):
             signal_on("LEFT")
@@ -80,13 +81,13 @@ def update_lights():
     print("Lights Killed")
             
 
-# Main program logic follows:
-#This section won't be running during the thread
-if __name__ == '__main__':
+# # Main program logic follows:
+# #This section won't be running during the thread
+# if __name__ == '__main__':
 
-    try:
-        global_vars.turn = -1 #Allows you to test the code 
-        update_lights()
+#     try:
+#         global_vars.turn = -1 #Allows you to test the code 
+#         update_lights()
  
-    except KeyboardInterrupt:
-        lights_off()
+#     except KeyboardInterrupt:
+#         lights_off()
