@@ -21,6 +21,7 @@ ACCEL_ZOUT_H = 0x3F
 GYRO_XOUT_H  = 0x43
 GYRO_YOUT_H  = 0x45
 GYRO_ZOUT_H  = 0x47
+Device_Address = 0x68   # MPU6050 device address
 
 # Threshold values - we will have to experimentally tune these
 Z_ACCEL_THRES = -0.3
@@ -70,13 +71,11 @@ def read_raw_data(addr):
         return value
 
 bus = smbus.SMBus(1) 	# or bus = smbus.SMBus(0) for older version boards
-Device_Address = 0x68   # MPU6050 device address
-
-MPU_Init()
-
 timer = threading.Timer(LIGHT_OFF_DELAY, brake_light_off)
 
 def start_accel():
+	MPU_Init()
+
 	global timer_running
 	z_moving_avg = [0]*50
 	# y_moving_avg = [0]*50
