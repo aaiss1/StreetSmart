@@ -83,11 +83,11 @@ def update_lights():
 
 # # Main program logic follows:
 # #This section won't be running during the thread
-# if __name__ == '__main__':
+if __name__ == '__main__':
 
-#     try:
-#         global_vars.turn = -1 #Allows you to test the code 
-#         update_lights()
+    try:
+        global_vars.turn = -1 #Allows you to test the code 
+        update_lights()
  
-#     except KeyboardInterrupt:
-#         lights_off()
+    except KeyboardInterrupt:
+        lights_off()

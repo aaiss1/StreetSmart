@@ -72,8 +72,8 @@ def start_lidar_distance(q):
             q.value = 0
             for dist in distances:
                 deg = 180*angles[idx]/math.pi
-                if(dist*10 <= 120 and deg <= 330 and deg >= 270):
-                    print(dist, 180*angles[idx]/math.pi)
+                if((dist*10 > 20 and dist*10 <= 100) and (deg <= 40 or deg >= 320)): # 60 degree from center point # Distance of 110cm of less
+                    print("Distance: " + str(dist*10) + " Angle: " + str(180*angles[idx]/math.pi))
                     print("Too Close")
                     q.value = 1
                 idx+=1

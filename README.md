@@ -44,5 +44,6 @@ How to Run streetsmart on startup
 sudo cp streetSmart.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable streetSmart.service
+sudo systemctl stop streetSmart.service
 sudo systemctl enable streetSmart.service --now
 sudo systemctl disable streetSmart.service
