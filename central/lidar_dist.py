@@ -67,20 +67,20 @@ def start_lidar_distance(q):
         loopFlag = True
         flag2c = False
 
-        if(i % 40 == 39):
-            idx = 0
-            q.value = 0
-            for dist in distances:
-                deg = 180*angles[idx]/math.pi
-                if((dist*10 > 20 and dist*10 <= 100) and (deg <= 40 or deg >= 320)): # 60 degree from center point # Distance of 110cm of less
-                    print("Distance: " + str(dist*10) + " Angle: " + str(180*angles[idx]/math.pi))
-                    print("Too Close")
-                    q.value = 1
-                    break
-                idx+=1
-            angles.clear()
-            distances.clear()
-            i = 0
+        # if(i % 40 == 39):
+        #     idx = 0
+        #     q.value = 0
+        #     for dist in distances:
+        #         deg = 180*angles[idx]/math.pi
+        #         if((dist*10 > 20 and dist*10 <= 100) and (deg <= 40 or deg >= 320)): # 60 degree from center point # Distance of 110cm of less
+        #             print("Distance: " + str(dist*10) + " Angle: " + str(180*angles[idx]/math.pi))
+        #             print("Too Close")
+        #             q.value = 1
+        #             break
+        #         idx+=1
+        #     angles.clear()
+        #     distances.clear()
+        #     i = 0
 
         while loopFlag:
             b = ser.read()
@@ -101,12 +101,21 @@ def start_lidar_distance(q):
                     continue
 
                 lidarData = CalcLidarData(tmpString[0:-5])
-                lidarData.Angle_i = [180*angle/math.pi for angle in lidarData.Angle_i]
+                # lidarData.Angle_i = [180*angle/math.pi for angle in lidarData.Angle_i]
                 print(str(lidarData.Angle_i) + ":::" + str(lidarData.Distance_i))
                 
 
-                angles.extend(lidarData.Angle_i)
-                distances.extend(lidarData.Distance_i)
+                # if in between +40 degrees and -40 degrees (320 degrees), then analyze distance
+                current_angle = 180*lidarData.Angle_i[0]/math.pi
+                q.value = 0
+                if (current_angle <= 40 or current_angle >= 320):
+                    for dist in lidarData.Distance_i:
+                        if(dist*10 > 20 and dist*10 <= 100):
+                            q.value = 1
+                            break
+                # if distance is under 110cm
+                # angles.extend(lidarData.Angle_i)
+                # distances.extend(lidarData.Distance_i)
                     
                 tmpString = ""
                 loopFlag = False
