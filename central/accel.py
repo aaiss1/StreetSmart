@@ -99,7 +99,9 @@ def start_accel():
 		# avg_y = numpy.mean(y_moving_avg)
 		# avg_x = numpy.mean(x_moving_avg)
 		delta = abs(avg_z - Az)
-		if delta > Z_AVG_THRES_MIN and delta < Z_AVG_THRES_MAX and Ax < 1.25 and Ax > 0.75 and Ay < 0.3 and Ay > -0.3:
+  #Ax < 1.25 and Ax > 0.75 and Ay < 0.3 and Ay > -0.3: ---> Thresholds used for Version 1 FYDP
+  #Ay > -1.25 and Ay < -0.75 and Ax < 0.3 and Ax > -0.3: ---> Thresholds used for Version 2 FYDP
+		if delta > Z_AVG_THRES_MIN and delta < Z_AVG_THRES_MAX and Ay > -1.25 and Ay < -0.75 and Ax < 0.3 and Ax > -0.3:
 			if filter_timer == 0:
 				filter_timer = time.time()
 			else:

@@ -76,6 +76,7 @@ def start_lidar_distance(q):
                     print("Distance: " + str(dist*10) + " Angle: " + str(180*angles[idx]/math.pi))
                     print("Too Close")
                     q.value = 1
+                    break
                 idx+=1
             angles.clear()
             distances.clear()
@@ -100,6 +101,10 @@ def start_lidar_distance(q):
                     continue
 
                 lidarData = CalcLidarData(tmpString[0:-5])
+                lidarData.Angle_i = [180*angle/math.pi for angle in lidarData.Angle_i]
+                print(str(lidarData.Angle_i) + ":::" + str(lidarData.Distance_i))
+                
+
                 angles.extend(lidarData.Angle_i)
                 distances.extend(lidarData.Distance_i)
                     
