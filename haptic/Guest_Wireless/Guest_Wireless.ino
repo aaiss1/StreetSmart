@@ -18,6 +18,7 @@ volatile int haptic = 0;
 long vibration_time = 100;
 volatile unsigned long last_vib_micros;
 int haptic_drive = 0;
+int signal_counter = 0;
 
 // These are used for interrupt button handling
 long debouncing_time = 300; // Debouncing Time in Milliseconds
@@ -126,39 +127,47 @@ void loop()
   uint8_t pipe;
   if (radio.available(&pipe))
   {                                                // is there a payload? get the pipe number that recieved it
+    // signal_counter += (signal_counter == 50)? 0 : 1;
     uint8_t bytes = radio.getDynamicPayloadSize(); // get the size of the payload
     PayloadStruct received;
     radio.read(&received, sizeof(received)); // get incoming payload
-    Serial.print(F("Received "));
-    Serial.print(bytes); // print the size of the payload
-    Serial.print(F(" bytes on pipe "));
-    Serial.print(pipe); // print the pipe number
-    Serial.print(F(": "));
+    // Serial.print(F("Received "));
+    // Serial.print(bytes); // print the size of the payload
+    // Serial.print(F(" bytes on pipe "));
+    // Serial.print(pipe); // print the pipe number
+    // Serial.print(F(": "));
     // Serial.print(received.message); // print incoming message
-    Serial.print(received.stat); // print incoming status
+     Serial.print(received.stat); // print incoming status
     haptic = received.stat;
 
     if(haptic){ //Drives the Haptic Motor if Haptic Enabled
       // Serial.print(F("  !!!Haptic Enabled!!!  "));
-      haptic = 0;
 
       if ((long)(micros() - last_vib_micros) >= vibration_time * 1000)
       {
-        digitalWrite(MOTOR_CTRL, haptic_drive);
+        // digitalWrite(MOTOR_CTRL, haptic_drive);
+        digitalWrite(MOTOR_CTRL, 1);
+        delay(100);
+        digitalWrite(MOTOR_CTRL, 0);
+        
         haptic_drive = !haptic_drive;
         last_vib_micros = micros();
       }
-    }else{
-        digitalWrite(MOTOR_CTRL, 0);
     }
 
     //Load the Payload Acknowledgement
     payload.stat = turn;
-    Serial.print(F(" Sent: "));
+    // Serial.print(F(" Sent: "));
     // Serial.print(payload.message);   // print outgoing message
-    Serial.println(payload.stat); // print outgoing counter
+    // Serial.println(payload.stat); // print outgoing counter
     radio.writeAckPayload(1, &payload, sizeof(payload));
 
+  } else{
+    // signal_counter -= (signal_counter == 0)? 0 : 1;
+    // if (signal_counter == 0) {
+    //   digitalWrite(MOTOR_CTRL, 0);
+    // }
+    digitalWrite(MOTOR_CTRL, 0);
   }
 } // loop
 
@@ -166,11 +175,7 @@ void left_ISR()
 { // increments mode selection
   if ((long)(micros() - last_micros) >= debouncing_time * 1000)
   {
-    turn++;
-    if (turn >= 1)
-    {
-      turn = 1;
-    }
+    turn = (turn == 0)? 1 : 0;
     last_micros = micros();
   }
 }
@@ -179,12 +184,8 @@ void right_ISR()
 { // increments mode selection
   if ((long)(micros() - last_micros) >= debouncing_time * 1000)
   {
-    Serial.println("H");
-    turn--;
-    if (turn <= -1)
-    {
-      turn = -1;
-    }
+    // Serial.println("H");
+    turn = (turn == 0)? -1 : 0;
     last_micros = micros();
   }
 }
