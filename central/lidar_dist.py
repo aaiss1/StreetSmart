@@ -50,7 +50,7 @@ def CalcLidarData(str):
     
 
 
-def start_lidar_distance(q):
+def start_lidar_distance(haptic, kill):
     ser = serial.Serial(port='/dev/ttyUSB0',
                     baudrate=230400,
                     timeout=5.0,
@@ -65,7 +65,7 @@ def start_lidar_distance(q):
     i = 0
     off_counter = 500
 
-    while True:
+    while not kill.value:
         loopFlag = True
         flag2c = False
 
@@ -77,7 +77,7 @@ def start_lidar_distance(q):
                     off_counter = 0
             
             # print("off_counter: ", off_counter)
-            q.value = 0 if (off_counter > 150) else 1
+            haptic.value = 0 if (off_counter > 150) else 1
 
             angles.clear()
             distances.clear()
@@ -124,6 +124,7 @@ def start_lidar_distance(q):
         i +=1
 
     ser.close()
+    print("Lidar Killed")
 
 
 # Main program logic follows:
