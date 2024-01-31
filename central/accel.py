@@ -27,7 +27,7 @@ Device_Address = 0x68   # MPU6050 device address
 Z_ACCEL_THRES = -0.3
 Z_AVG_THRES_MIN = 0.3
 Z_AVG_THRES_MAX = 0.8
-TIME_FILTER_THRES = 0.02
+TIME_FILTER_THRES = 0.03
 LIGHT_OFF_DELAY = 2
 
  
@@ -48,15 +48,15 @@ def MPU_Init():
 	#Write to power management register
 	bus.write_byte_data(Device_Address, PWR_MGMT_1, 1)
 	
-	#Write to Configuration register
-	bus.write_byte_data(Device_Address, CONFIG, 0)
+	#Write to Configuration register for LPF
+	bus.write_byte_data(Device_Address, CONFIG, 5)
 	
 	#Write to Gyro configuration register
 	bus.write_byte_data(Device_Address, GYRO_CONFIG, 24)
 	
 	#Write to interrupt enable register
 	bus.write_byte_data(Device_Address, INT_ENABLE, 1)
-
+ 
 def read_raw_data(addr):
 	#Accelero and Gyro value are 16-bit
         high = bus.read_byte_data(Device_Address, addr)
@@ -77,7 +77,7 @@ def start_accel():
 	MPU_Init()
 
 	global timer_running
-	z_moving_avg = [0]*50
+	z_moving_avg = [0]*200
 	# y_moving_avg = [0]*50
 	# x_moving_avg = [1]*50
 	filter_timer = 0
@@ -96,6 +96,7 @@ def start_accel():
 
 		# If thresh conditions are met, turn on the light
 		avg_z = numpy.mean(z_moving_avg)
+
 		# avg_y = numpy.mean(y_moving_avg)
 		# avg_x = numpy.mean(x_moving_avg)
 		delta = abs(avg_z - Az)
