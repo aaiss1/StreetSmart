@@ -27,7 +27,7 @@ if __name__ == "__main__":
         lighting_thread.start()
         comm_thread.start()
         accel_thread.start()
-    # distance_thread.start()
+        # distance_thread.start()
         while True:
             global_vars.haptic = haptic.value
             

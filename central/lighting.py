@@ -26,6 +26,8 @@ ARROW_LEFT = [55, 32, 56, 31, 57, 30, 58, 29, 59, 28, 60, 27, 61, 26, 62, 25, 68
 
 BRAKE = list(range(0, LED_COUNT))
 
+f = [67,64,23,20, 68, 24, 69, 25, 71, 60, 27, 16, 15, 73, 58, 29, 14, 75, 76, 77, 56, 31, 12, 11,10, 79, 52, 35, 8, 51, 36, 81, 6, 84, 47, 40, 3, 2,1, 86, 45, 42]
+
 strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
 # Intialize the library (must be called once before other functions).
 
@@ -50,6 +52,13 @@ def brake_lights_on():
         strip.setPixelColor(i, Color(255, 0, 0, 0))
     strip.show()
 
+def flip_off():
+    lights_off()
+    time.sleep(1)
+    for i in f:
+        strip.setPixelColor(i, Color(255, 0, 0, 0))
+    strip.show()
+    time.sleep(1)
  
 # Turn of all the lights
 def lights_off():
@@ -106,7 +115,8 @@ def update_lights():
             signal_on("RIGHT")
             print("Turning Right")
         elif(global_vars.brake == 1):
-            brake_lights_on()
+            # brake_lights_on()
+            flip_off()
             print("Braking")
         else:
             idle_color()
