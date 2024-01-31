@@ -50,81 +50,84 @@ def CalcLidarData(str):
     
 
 
-def start_lidar_distance(haptic, kill):
-    ser = serial.Serial(port='/dev/ttyUSB0',
-                    baudrate=230400,
-                    timeout=5.0,
-                    bytesize=8,
-                    parity='N',
-                    stopbits=1)
-    ser.flushInput()
-    ser.flushOutput()
-    tmpString = ""
-    angles = list()
-    distances = list()
-    i = 0
-    off_counter = 500
+def start_lidar_distance(haptic):
+    try:
+        ser = serial.Serial(port='/dev/ttyUSB0',
+                        baudrate=230400,
+                        timeout=5.0,
+                        bytesize=8,
+                        parity='N',
+                        stopbits=1)
+        ser.flushInput()
+        ser.flushOutput()
+        tmpString = ""
+        angles = list()
+        distances = list()
+        i = 0
+        off_counter = 500
 
-    while not kill.value:
-        loopFlag = True
-        flag2c = False
+        while True:
+            loopFlag = True
+            flag2c = False
 
-        if(i % 40 == 39):
-            for dist in distances:
-                if not(dist*10 > 20 and dist*10 <= 150):
-                    off_counter += 1 if (off_counter <= 500) else 0
-                else:
-                    off_counter = 0
-            
-            # print("off_counter: ", off_counter)
-            haptic.value = 0 if (off_counter > 150) else 1
+            if(i % 40 == 39):
+                for dist in distances:
+                    if not(dist*10 > 20 and dist*10 <= 150):
+                        off_counter += 1 if (off_counter <= 500) else 0
+                    else:
+                        off_counter = 0
+                
+                # print("off_counter: ", off_counter)
+                haptic.value = 0 if (off_counter > 150) else 1
 
-            angles.clear()
-            distances.clear()
-            i = 0
+                angles.clear()
+                distances.clear()
+                i = 0
 
-        while loopFlag:
-            b = ser.read()
-            tmpInt = int.from_bytes(b, 'big')
-            
-            if (tmpInt == 0x54):
-                tmpString +=  b.hex()+" "
-                flag2c = True
-                continue
-            
-            elif(tmpInt == 0x2c and flag2c):
-                tmpString += b.hex()
+            while loopFlag:
+                b = ser.read()
+                tmpInt = int.from_bytes(b, 'big')
+                
+                if (tmpInt == 0x54):
+                    tmpString +=  b.hex()+" "
+                    flag2c = True
+                    continue
+                
+                elif(tmpInt == 0x2c and flag2c):
+                    tmpString += b.hex()
 
-                if(not len(tmpString[0:-5].replace(' ','')) == 90 ):
+                    if(not len(tmpString[0:-5].replace(' ','')) == 90 ):
+                        tmpString = ""
+                        loopFlag = False
+                        flag2c = False
+                        continue
+
+                    lidarData = CalcLidarData(tmpString[0:-5])
+                    # lidarData.Angle_i = [180*angle/math.pi for angle in lidarData.Angle_i]
+                    # print(str(lidarData.Angle_i[0]) + ":::" + str(lidarData.Distance_i[0]))
+                    
+
+                    # if in between +40 degrees and -40 degrees (320 degrees), then analyze distance
+                    current_angle = 180*lidarData.Angle_i[0]/math.pi
+
+                    if (current_angle <= 50 or current_angle >= 310):
+                        angles.extend(lidarData.Angle_i)
+                        distances.extend(lidarData.Distance_i)
+
+                        
                     tmpString = ""
                     loopFlag = False
-                    flag2c = False
-                    continue
-
-                lidarData = CalcLidarData(tmpString[0:-5])
-                # lidarData.Angle_i = [180*angle/math.pi for angle in lidarData.Angle_i]
-                # print(str(lidarData.Angle_i[0]) + ":::" + str(lidarData.Distance_i[0]))
+                else:
+                    tmpString += b.hex()+" "
                 
-
-                # if in between +40 degrees and -40 degrees (320 degrees), then analyze distance
-                current_angle = 180*lidarData.Angle_i[0]/math.pi
-
-                if (current_angle <= 50 or current_angle >= 310):
-                    angles.extend(lidarData.Angle_i)
-                    distances.extend(lidarData.Distance_i)
-
-                    
-                tmpString = ""
-                loopFlag = False
-            else:
-                tmpString += b.hex()+" "
+                flag2c = False
             
-            flag2c = False
-        
-        i +=1
+            i +=1
 
-    ser.close()
-    print("Lidar Killed")
+        ser.close()
+    except KeyboardInterrupt:
+        print("Lidar Killed")
+
 
 
 # Main program logic follows:

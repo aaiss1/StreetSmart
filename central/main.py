@@ -7,7 +7,7 @@ import comm
 import accel
 # import distance
 import lidar_dist
-from multiprocessing import Process, Queue, Value
+from multiprocessing import Process, Queue, Value, ProcessError
 
 
 if __name__ == "__main__":
@@ -18,12 +18,9 @@ if __name__ == "__main__":
     # distance_thread = threading.Thread(target=distance.start_distance)
 
     haptic = Value('i', 0)
-    kill = Value('i', 0)
     try:
-        lidar_proc = Process(target=lidar_dist.start_lidar_distance, args=(haptic, kill, ))
-        lidar_proc.start()
-        global_vars.lidar_pid = lidar_proc.pid
-
+        global_vars.lidar_proc = Process(target=lidar_dist.start_lidar_distance, args=(haptic, ))
+        global_vars.lidar_proc.start()
 
         # distance_thread = threading.Thread(target=lidar_dist.start_lidar_distance)
 
@@ -36,16 +33,14 @@ if __name__ == "__main__":
             
     except KeyboardInterrupt:
         print(" Keyboard Interrupt detected. Exiting...")
-        try:
-            global_vars.kill_all_threads()
-            kill.value = 1
-        except Exception as e:
-            print("")
-            
+        
+        global_vars.kill_all_threads()
+  
         lighting_thread.join()
         comm_thread.join()
         accel_thread.join()
         # distance_thread.join()
-        lidar_proc.join()
+        global_vars.lidar_proc.join()
+
         
         sys.exit()

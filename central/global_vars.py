@@ -17,11 +17,13 @@ kill_accel_thread = threading.Event()
 haptic = 0
 kill_distance_thread = 0
 
-lidar_pid = 0
-
+lidar_proc = None
 
 def kill_all_threads():
     kill_light_thread.set()
     kill_comm_thread.set()
     kill_accel_thread.set()
-    kill_distance_thread = 1
+    lidar_proc.terminate()
+
+
+    
