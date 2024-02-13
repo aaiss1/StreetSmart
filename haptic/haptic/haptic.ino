@@ -4,6 +4,8 @@
 
 const int LEFT_SIG = 2;
 const int RIGHT_SIG = 3;
+const int LEFT_LED = 6;
+const int RIGHT_LED = 7;
 
 const int MOTOR_CTRL = 5;
 
@@ -15,14 +17,23 @@ volatile int turn = 0;
 volatile int haptic = 0;
 // 0  = do nothing
 // 1 = vibrate
-long vibration_time = 100;
-volatile unsigned long last_vib_micros;
+long blink_time = 100;
+long vibration_time = 200;
+
+int ledState = LOW;  // ledState used to set the LED
+
+// Generally, you should use "unsigned long" for variables that hold time
+// The value will quickly become too large for an int to store
+unsigned long previousMillis = 0;  // will store last time LED was updated
+
 int haptic_drive = 0;
 int signal_counter = 0;
 
 // These are used for interrupt button handling
 long debouncing_time = 300; // Debouncing Time in Milliseconds
 volatile unsigned long last_micros;
+volatile unsigned long last_vib_micros;
+
 /**
  * A simple example of sending data from 1 nRF24L01 transceiver to another
  * with Acknowledgement (ACK) payloads attached to ACK packets.
@@ -123,6 +134,27 @@ void setup()
 
 void loop()
 {
+  if(turn != 0){
+    if ((long)(millis() - previousMillis >= blink_time)) {
+      previousMillis = millis();
+
+      if (ledState == LOW) {
+        ledState = HIGH;
+      } else {
+        ledState = LOW;
+      }
+
+      if(turn == 1){
+        digitalWrite(LEFT_LED, ledState);
+      }else if (turn == -1){
+        digitalWrite(RIGHT_LED, ledState);
+      }
+    }
+  }else if (turn == 0){
+    ledState = LOW;
+    digitalWrite(LEFT_LED, LOW);
+    digitalWrite(RIGHT_LED, LOW);
+  }
 
   uint8_t pipe;
   if (radio.available(&pipe))
