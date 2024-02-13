@@ -17,7 +17,7 @@ volatile int turn = 0;
 volatile int haptic = 0;
 // 0  = do nothing
 // 1 = vibrate
-long blink_time = 100;
+long blink_time = 1000;
 long vibration_time = 200;
 
 int ledState = LOW;  // ledState used to set the LED
@@ -78,6 +78,11 @@ void setup()
 
   pinMode(MOTOR_CTRL, OUTPUT); // sets all button interrupts as pull ups
   digitalWrite(MOTOR_CTRL, 0);
+
+  pinMode(LEFT_LED, OUTPUT); // sets all button interrupts as pull ups
+  digitalWrite(LEFT_LED, 0);
+  pinMode(RIGHT_LED, OUTPUT); // sets all button interrupts as pull ups
+  digitalWrite(RIGHT_LED, 0);
 
   // attach interrupts to pins
   attachInterrupt(digitalPinToInterrupt(LEFT_SIG), left_ISR, FALLING);
