@@ -115,8 +115,8 @@ def update_lights():
             signal_on("RIGHT")
             print("Turning Right")
         elif(global_vars.brake == 1):
-            # brake_lights_on()
-            flip_off()
+            brake_lights_on()
+            # flip_off()
             print("Braking")
         else:
             idle_color()
