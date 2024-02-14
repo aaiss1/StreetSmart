@@ -4,8 +4,9 @@
 
 const int LEFT_SIG = 2;
 const int RIGHT_SIG = 3;
-const int LEFT_LED = 6;
-const int RIGHT_LED = 7;
+const int LEFT_LED = 7;
+const int RIGHT_LED = 6;
+const int MODE_LED = 4;
 
 const int MOTOR_CTRL = 5;
 
@@ -84,6 +85,9 @@ void setup()
   pinMode(RIGHT_LED, OUTPUT); // sets all button interrupts as pull ups
   digitalWrite(RIGHT_LED, 0);
 
+  pinMode(MODE_LED, OUTPUT); // sets all button interrupts as pull ups
+  digitalWrite(MODE_LED, 1);
+
   // attach interrupts to pins
   attachInterrupt(digitalPinToInterrupt(LEFT_SIG), left_ISR, FALLING);
   attachInterrupt(digitalPinToInterrupt(RIGHT_SIG), right_ISR, FALLING);
@@ -99,6 +103,13 @@ void setup()
     Serial.println(F("radio hardware is not responding!!"));
     while (1)
     {
+      
+      digitalWrite(LEFT_LED, HIGH);
+      digitalWrite(RIGHT_LED, HIGH);
+      delay(300);
+      digitalWrite(LEFT_LED, LOW);
+      digitalWrite(RIGHT_LED, LOW);
+      delay(300);
     } // hold in infinite loop
   }
 
