@@ -67,6 +67,7 @@ def start_lidar_distance(haptic):
         off_counter = 500
 
         while True:
+            print("Current distance mode: ", global_vars.distance_mode)
             loopFlag = True
             flag2c = False
 

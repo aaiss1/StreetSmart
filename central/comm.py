@@ -75,7 +75,9 @@ def start_comm():
                 length = radio.getDynamicPayloadSize()
                 response = radio.read(length)
            #     decoded = bytes(response[:1]).decode("utf-8")
-                global_vars.turn = int.from_bytes(bytes(response[:2]), byteorder='little', signed=True)
+                
+                global_vars.turn = int.from_bytes(bytes(response[:1]), byteorder='little', signed=True)
+                global_vars.distance_mode = int.from_bytes(bytes(response[1:2]), byteorder='little', signed=True)
                 # print(
                 #     f"Received {length} on pipe {pipe_number}:",
                 #     f"{global_vars.turn}",

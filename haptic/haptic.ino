@@ -33,6 +33,7 @@ int status_led_state = LOW;  // ledState used to set the LED
 // 0 - haptic on (normal)
 // 1 - haptic off
 bool is_haptic_on = true;
+bool in_adjust_mode = false;
 bool is_connected = false;
 
 // Generally, you should use "unsigned long" for variables that hold time
@@ -43,6 +44,8 @@ unsigned long last_connected_time = 0;
 
 int haptic_drive = 0;
 int signal_counter = 0;
+
+uint8_t distance_mode = 0;
 
 // These are used for interrupt button handling
 long debouncing_time = 300; // Debouncing Time in Milliseconds
@@ -82,85 +85,10 @@ bool role = false; // true = TX role, false = RX role
 struct PayloadStruct
 {
   // char message[9];
-  int stat;
+  uint8_t stat;
+  uint8_t distance_mode;
 };
 PayloadStruct payload;
-
-void setup()
-{
-  // pinMode(LEFT_SIG, INPUT_PULLUP);  // sets all button interrupts as pull ups
-  // pinMode(RIGHT_SIG, INPUT_PULLUP); // sets all button interrupts as pull ups
-
-  pinMode(MOTOR_CTRL, OUTPUT); // sets all button interrupts as pull ups
-  digitalWrite(MOTOR_CTRL, 0);
-
-  pinMode(LEFT_LED, OUTPUT); // sets all button interrupts as pull ups
-  digitalWrite(LEFT_LED, 0);
-  pinMode(RIGHT_LED, OUTPUT); // sets all button interrupts as pull ups
-  digitalWrite(RIGHT_LED, 0);
-
-  pinMode(MODE_LED, OUTPUT); // led for connecting state
-  digitalWrite(MODE_LED, 0);
-
-  // attach interrupts to pins
-  attachInterrupt(digitalPinToInterrupt(LEFT_SIG), left_ISR, FALLING);
-  attachInterrupt(digitalPinToInterrupt(RIGHT_SIG), right_ISR, FALLING);
-  Serial.begin(115200);
-  while (!Serial)
-  {
-    // some boards need to wait to ensure access to serial over USB
-  }
-
-  // initialize the transceiver on the SPI bus
-  if (!radio.begin())
-  {
-    Serial.println(F("radio hardware is not responding!!"));
-    while (1)
-    {
-      
-      digitalWrite(LEFT_LED, HIGH);
-      digitalWrite(RIGHT_LED, HIGH);
-      delay(300);
-      digitalWrite(LEFT_LED, LOW);
-      digitalWrite(RIGHT_LED, LOW);
-      delay(300);
-    } // hold in infinite loop
-  }
-
-  radioNumber = 1;
-  Serial.print(F("radioNumber = "));
-  Serial.println((int)radioNumber);
-
-  // Set the PA Level low to try preventing power supply related problems
-  // because these examples are likely run with nodes in close proximity to
-  // each other.
-  radio.setPALevel(RF24_PA_HIGH); // RF24_PA_MAX is default.
-  radio.setChannel(127);
-  radio.setDataRate(RF24_250KBPS);
-
-  // to use ACK payloads, we need to enable dynamic payload lengths (for all nodes)
-  radio.setPayloadSize(2);
-  // Acknowledgement packets have no payloads by default. We need to enable
-  // this feature for all nodes (TX & RX) to use ACK payloads.
-  radio.enableAckPayload();
-
-  // set the TX address of the RX node into the TX pipe
-  radio.openWritingPipe(address[radioNumber]); // always uses pipe 0
-
-  // set the RX address of the TX node into a RX pipe
-  radio.openReadingPipe(1, address[!radioNumber]); // using pipe 1
-
-  // memcpy(payload.message, "Turn: ", 6); // set the payload message
-  // load the payload for the first received transmission on pipe 0
-  radio.writeAckPayload(1, &payload, sizeof(payload));
-
-  radio.startListening(); // put radio in RX mode
-
-  // For debugging info
-  // printf_begin();             // needed only once for printing details
-  // radio.printDetails();       // (smaller) function that prints raw register values
-  // radio.printPrettyDetails(); // (larger) function that prints human readable data
-}
 
 // https://forum.arduino.cc/t/adding-a-double-click-case-statement/283504/3
 /*
@@ -171,8 +99,8 @@ To keep a physical interface as simple as possible, this sketch demonstrates gen
 4) Long Press and Hold:  holding the button for a long time 
 */
 // Button timing variables
-int debounce = 20;          // ms debounce period to prevent flickering when pressing or releasing the button
-int DCgap = 250;            // max ms between clicks for a double click event
+int debounce = 5;          // ms debounce period to prevent flickering when pressing or releasing the button
+int DCgap = 500;            // max ms between clicks for a double click event
 int holdTime = 2000;        // ms hold period: how long to wait for press+hold event
 int longHoldTime = 4000;    // ms long hold period: how long to wait for press+hold event
 
@@ -256,6 +184,92 @@ int check_mode_button() {
 }
 
 
+void setup()
+{
+  // pinMode(LEFT_SIG, INPUT_PULLUP);  // sets all button interrupts as pull ups
+  // pinMode(RIGHT_SIG, INPUT_PULLUP); // sets all button interrupts as pull ups
+
+  pinMode(MOTOR_CTRL, OUTPUT); // sets all button interrupts as pull ups
+  digitalWrite(MOTOR_CTRL, 0);
+
+  pinMode(LEFT_LED, OUTPUT); // sets all button interrupts as pull ups
+  digitalWrite(LEFT_LED, 0);
+  pinMode(RIGHT_LED, OUTPUT); // sets all button interrupts as pull ups
+  digitalWrite(RIGHT_LED, 0);
+
+  pinMode(MODE_LED, OUTPUT); // led for connecting state
+  digitalWrite(MODE_LED, 0);
+
+  // attach interrupts to pins
+  attachInterrupt(digitalPinToInterrupt(LEFT_SIG), left_ISR, FALLING);
+  attachInterrupt(digitalPinToInterrupt(RIGHT_SIG), right_ISR, FALLING);
+  Serial.begin(115200);
+  while (!Serial)
+  {
+    // some boards need to wait to ensure access to serial over USB
+  }
+
+  // initialize the transceiver on the SPI bus
+  if (!radio.begin())
+  {
+    Serial.println(F("radio hardware is not responding!!"));
+    while (1)
+    {
+      
+      digitalWrite(LEFT_LED, HIGH);
+      digitalWrite(RIGHT_LED, HIGH);
+      delay(300);
+      digitalWrite(LEFT_LED, LOW);
+      digitalWrite(RIGHT_LED, LOW);
+      delay(300);
+    } // hold in infinite loop
+  }
+
+  radioNumber = 1;
+  Serial.print(F("radioNumber = "));
+  Serial.println((int)radioNumber);
+
+  // Set the PA Level low to try preventing power supply related problems
+  // because these examples are likely run with nodes in close proximity to
+  // each other.
+  radio.setPALevel(RF24_PA_HIGH); // RF24_PA_MAX is default.
+  radio.setChannel(127);
+  radio.setDataRate(RF24_250KBPS);
+
+  // to use ACK payloads, we need to enable dynamic payload lengths (for all nodes)
+  radio.setPayloadSize(2);
+  // Acknowledgement packets have no payloads by default. We need to enable
+  // this feature for all nodes (TX & RX) to use ACK payloads.
+  radio.enableAckPayload();
+
+  // set the TX address of the RX node into the TX pipe
+  radio.openWritingPipe(address[radioNumber]); // always uses pipe 0
+
+  // set the RX address of the TX node into a RX pipe
+  radio.openReadingPipe(1, address[!radioNumber]); // using pipe 1
+
+  // memcpy(payload.message, "Turn: ", 6); // set the payload message
+  // load the payload for the first received transmission on pipe 0
+  payload.distance_mode = 0,
+  payload.stat = 0,
+  
+  radio.writeAckPayload(1, &payload, sizeof(payload));
+
+  radio.startListening(); // put radio in RX mode
+
+  // For debugging info
+  // printf_begin();             // needed only once for printing details
+  // radio.printDetails();       // (smaller) function that prints raw register values
+  // radio.printPrettyDetails(); // (larger) function that prints human readable data
+
+  // in setup, check if button is held, if it is, toggle haptic off
+  int button_status = analogRead(MODE_BUTTON) < 500? LOW : HIGH;
+  if (button_status == LOW) {
+    is_haptic_on = false;
+  }
+}
+
+
 void flash_led(const int led_num, int *led_state, unsigned long* prev_time, int blink_time) {
   if ((long)(millis() - *prev_time >= blink_time)) {
     *prev_time = millis();
@@ -269,14 +283,32 @@ void flash_led(const int led_num, int *led_state, unsigned long* prev_time, int 
 void loop()
 {
   // poll button - range 655-0, 500 arbitrary toggle value
-  if (is_connected && check_mode_button() == 3) {
-    is_haptic_on = !is_haptic_on;
+  if (is_connected) {
+    int button_status = check_mode_button();
+    if (button_status == 3) {
+            Serial.println("2s HOLD!!\n\n");
+      in_adjust_mode = !in_adjust_mode;
+      turn = 0;
+    } 
   }
+
+  if (in_adjust_mode) {
+    if (turn == 1) {
+      // left: decrease distance
+      distance_mode -= (distance_mode > 0)? 1 : 0;
+    } else if (turn == 2) {
+      // right: increase distance
+      distance_mode += (distance_mode < 4)? 1 : 0;
+    }
+    turn = 0;
+
+    flash_led(MODE_LED, &status_led_state, &status_led_prev_time, 250);
+  } else {
 
   // turn led check
   if (turn == 1) {
     flash_led(LEFT_LED, &turn_led_state, &turn_led_prev_time, turn_led_blink_time);
-  } else if (turn == -1) {
+  } else if (turn == 2) {
     flash_led(RIGHT_LED, &turn_led_state, &turn_led_prev_time, turn_led_blink_time);
   } else {
     turn_led_state = LOW;
@@ -298,7 +330,7 @@ void loop()
     // Serial.print(pipe); // print the pipe number
     // Serial.print(F(": "));
     // Serial.print(received.message); // print incoming message
-     Serial.print(received.stat); // print incoming status
+    // Serial.print(received.stat); // print incoming status
     haptic = received.stat;
 
     if(haptic && is_haptic_on){ //Drives the Haptic Motor if Haptic Enabled
@@ -317,7 +349,9 @@ void loop()
     }
 
     //Load the Payload Acknowledgement
+    Serial.print(distance_mode);
     payload.stat = turn;
+    payload.distance_mode = distance_mode;
     // Serial.print(F(" Sent: "));
     // Serial.print(payload.message);   // print outgoing message
     // Serial.println(payload.stat); // print outgoing counter
@@ -369,6 +403,7 @@ void loop()
 
     }
   }
+  }
 
 } // loop
 
@@ -386,7 +421,7 @@ void right_ISR()
   if ((long)(micros() - last_micros) >= debouncing_time * 1000)
   {
     // Serial.println("H");
-    turn = (turn == 0)? -1 : 0;
+    turn = (turn == 0)? 2 : 0;
     last_micros = micros();
   }
 }

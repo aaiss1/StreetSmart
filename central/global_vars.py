@@ -17,6 +17,8 @@ kill_accel_thread = threading.Event()
 haptic = 0
 kill_distance_thread = 0
 
+distance_mode = 0
+
 lidar_proc = None
 
 def kill_all_threads():
