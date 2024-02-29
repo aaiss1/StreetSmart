@@ -3,6 +3,7 @@ import math
 import global_vars
 import queue
 
+distance_mode_map = [150, 100, 75, 50, 25]
 
 class LidarData:
     def __init__(self,FSA,LSA,CS,Speed,TimeStamp,Confidence_i,Angle_i,Distance_i):
@@ -50,7 +51,7 @@ def CalcLidarData(str):
     
 
 
-def start_lidar_distance(haptic):
+def start_lidar_distance(haptic, distance_mode):
     try:
         ser = serial.Serial(port='/dev/ttyUSB0',
                         baudrate=230400,
@@ -65,21 +66,27 @@ def start_lidar_distance(haptic):
         distances = list()
         i = 0
         off_counter = 500
+        on_counter = 0
 
         while True:
-            print("Current distance mode: ", global_vars.distance_mode)
+            # print("Current distance mode: " + str(distance_mode.value))
             loopFlag = True
             flag2c = False
 
             if(i % 40 == 39):
+                on_counter = 0
                 for dist in distances:
-                    if not(dist*10 > 20 and dist*10 <= 150):
+                    if not(dist*10 > 10 and dist*10 <= distance_mode_map[distance_mode.value]):
                         off_counter += 1 if (off_counter <= 500) else 0
                     else:
                         off_counter = 0
-                
+                        on_counter += 1 if (on_counter <= 100) else 0
+                # print(on_counter)
                 # print("off_counter: ", off_counter)
-                haptic.value = 0 if (off_counter > 150) else 1
+                if (off_counter > 150):
+                    haptic.value = 0 
+                elif(on_counter > 5):
+                    haptic.value = 1
 
                 angles.clear()
                 distances.clear()

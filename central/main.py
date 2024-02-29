@@ -18,8 +18,10 @@ if __name__ == "__main__":
     # distance_thread = threading.Thread(target=distance.start_distance)
 
     haptic = Value('i', 0)
+    dist_mode = Value('i', 0)
+
     try:
-        global_vars.lidar_proc = Process(target=lidar_dist.start_lidar_distance, args=(haptic, ))
+        global_vars.lidar_proc = Process(target=lidar_dist.start_lidar_distance, args=(haptic, dist_mode))
         global_vars.lidar_proc.start()
 
         # distance_thread = threading.Thread(target=lidar_dist.start_lidar_distance)
@@ -30,7 +32,8 @@ if __name__ == "__main__":
         # distance_thread.start()
         while True:
             global_vars.haptic = haptic.value
-            
+            dist_mode.value = global_vars.distance_mode
+   
     except KeyboardInterrupt:
         print(" Keyboard Interrupt detected. Exiting...")
         
