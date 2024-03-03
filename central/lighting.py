@@ -19,10 +19,10 @@ RIGHT_LEDS_TOP = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
 RIGHT_LEDS_BOT = [55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76]
  
 # ARROW_LEFT = [43, 44, 3, 84, 2, 85, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54]
-ARROW_RIGHT = [54, 33, 53, 34, 52, 35, 51, 36, 50, 37, 49, 38, 48, 39, 47, 40, 85, 46, 41, 2, 45, 42, 44, 43]
+ARROW_RIGHT = [54, 33, 53, 34, 52, 35, 51, 36, 50, 37, 49, 38, 48, 39, 47, 40, 85, 46, 41, 2, 45, 42, 44, 43, 86, 1]
 
 # ARROW_RIGHT = [22, 65, 23, 64, 18, 19, 68, 69, 24, 25, 26, 27, 28, 29, 30, 31, 32, 55, 56, 57, 58, 59, 60, 61, 62, 63]
-ARROW_LEFT = [55, 32, 56, 31, 57, 30, 58, 29, 59, 28, 60, 27, 61, 26, 62, 25, 68, 63, 24, 19, 64, 23, 65, 22]
+ARROW_LEFT = [55, 32, 56, 31, 57, 30, 58, 29, 59, 28, 60, 27, 61, 26, 62, 25, 68, 63, 24, 19, 64, 23, 65, 22, 67, 20]
 
 BRAKE = list(range(0, LED_COUNT))
 
@@ -108,16 +108,16 @@ def update_lights():
     strip.begin()
 
     while not global_vars.kill_light_thread.is_set():
-        if(global_vars.turn == 1):
+        if(global_vars.brake == 1):
+            brake_lights_on()
+            # flip_off()
+            print("Braking")
+        elif(global_vars.turn == 1):
             signal_on("LEFT")
             print("Turning Left")
         elif(global_vars.turn == -1):
             signal_on("RIGHT")
             print("Turning Right")
-        elif(global_vars.brake == 1):
-            brake_lights_on()
-            # flip_off()
-            print("Braking")
         else:
             idle_color()
         

@@ -3,7 +3,7 @@ import math
 import global_vars
 import queue
 
-distance_mode_map = [150, 100, 75, 50, 25]
+distance_mode_map = [300, 150, 100, 75, 40]
 
 class LidarData:
     def __init__(self,FSA,LSA,CS,Speed,TimeStamp,Confidence_i,Angle_i,Distance_i):
@@ -76,7 +76,7 @@ def start_lidar_distance(haptic, distance_mode):
             if(i % 40 == 39):
                 on_counter = 0
                 for dist in distances:
-                    if not(dist*10 > 10 and dist*10 <= distance_mode_map[distance_mode.value]):
+                    if not(dist*10 > 25 and dist*10 <= distance_mode_map[distance_mode.value]):
                         off_counter += 1 if (off_counter <= 500) else 0
                     else:
                         off_counter = 0
