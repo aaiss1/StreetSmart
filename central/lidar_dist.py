@@ -3,7 +3,7 @@ import math
 import global_vars
 import queue
 
-distance_mode_map = [400, 300, 200, 100, 40]
+distance_mode_map = [400, 300, 200, 100, 50]
 
 class LidarData:
     def __init__(self,FSA,LSA,CS,Speed,TimeStamp,Confidence_i,Angle_i,Distance_i):
@@ -67,6 +67,8 @@ def start_lidar_distance(haptic, distance_mode):
         i = 0
         # off_counter = 500
         on_counter = 0
+        counter_average_len = 5
+        counter_average = [0]*counter_average_len
 
         while True:
             # print("Current distance mode: " + str(distance_mode.value))
@@ -76,16 +78,27 @@ def start_lidar_distance(haptic, distance_mode):
             if(i % 40 == 39):
                 on_counter = 0
                 # off_counter = 0
+                # print(distances)
                 for dist in distances:
-                    if (dist*10 > 25 and dist*10 <= distance_mode_map[distance_mode.value]):
+                    if (dist*10 > 50 and dist*10 <= distance_mode_map[distance_mode.value]):
                     #     off_counter += 1 if (off_counter <= 500) else 0
                     # else:
+                        # print("Dist: " + str(dist*10))
                         on_counter += 1 if (on_counter <= 100) else 0
                 # print(on_counter)
+                counter_average.append(on_counter)
+                counter_average.pop(0)
+                print(str(on_counter) + " average: " + str(sum(counter_average)/counter_average_len))
+
+                
+                
+                    
                 # print("off_counter: ", off_counter)
-                if(on_counter > 10):
+                # if(on_counter > 35):
+                if(sum(counter_average)/counter_average_len > 35):
                     haptic.value = 1
                 else:
+                    
                     haptic.value = 0 
                 # elif(on_counter > 5):
                 #     haptic.value = 1

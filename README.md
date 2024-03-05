@@ -66,7 +66,7 @@ sudo systemctl stop streetSmart.service
 ## How to Run StreetSmart Manually
 
 ```
-run sudo python3 main.py
+sudo python3 main.py
 
 #CTRL C to kill
 ```

@@ -7,8 +7,8 @@ LED_COUNT      = 88
 LED_PIN        = 18      
 LED_FREQ_HZ    = 800000  # LED signal frequency in hertz (usually 800khz)
 LED_DMA        = 10      # DMA channel to use for generating a signal (try 10)
-LED_BRIGHTNESS = (int)(255*0.25)     # Set to 0 for darkest and 255 for brightest
-LED_INVERT     = True   # True to invert the signal (when using NPN transistor level shift)
+LED_BRIGHTNESS = (int)(255*0.2)     # Set to 0 for darkest and 255 for brightest
+LED_INVERT     = True   # True to invert the signal (when using NrasPN transistor level shift)
 LED_CHANNEL    = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
  
  
