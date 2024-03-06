@@ -1,7 +1,5 @@
 import serial
 import math
-import global_vars
-import queue
 
 distance_mode_map = [400, 300, 200, 100, 50]
 
@@ -64,6 +62,7 @@ def start_lidar_distance(haptic, distance_mode):
         tmpString = ""
         angles = list()
         distances = list()
+        confidences = list()
         i = 0
         # off_counter = 500
         on_counter = 0
@@ -78,7 +77,8 @@ def start_lidar_distance(haptic, distance_mode):
             if(i % 40 == 39):
                 on_counter = 0
                 # off_counter = 0
-                # print(distances)
+                # print(len(distances))
+                # print(confidences)
                 for dist in distances:
                     if (dist*10 > 50 and dist*10 <= distance_mode_map[distance_mode.value]):
                     #     off_counter += 1 if (off_counter <= 500) else 0
@@ -88,10 +88,8 @@ def start_lidar_distance(haptic, distance_mode):
                 # print(on_counter)
                 counter_average.append(on_counter)
                 counter_average.pop(0)
-                print(str(on_counter) + " average: " + str(sum(counter_average)/counter_average_len))
+                # print(str(on_counter) + " average: " + str(sum(counter_average)/counter_average_len))
 
-                
-                
                     
                 # print("off_counter: ", off_counter)
                 # if(on_counter > 35):
@@ -136,6 +134,7 @@ def start_lidar_distance(haptic, distance_mode):
                     if (current_angle <= 50 or current_angle >= 310):
                         angles.extend(lidarData.Angle_i)
                         distances.extend(lidarData.Distance_i)
+                        confidences.extend(lidarData.Confidence_i)
 
                         
                     tmpString = ""
