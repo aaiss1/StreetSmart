@@ -2,6 +2,7 @@ import serial
 import math
 
 distance_mode_map = [400, 300, 200, 100, 50]
+distance_mode_min_map = [50, 50, 50, 50, 25]
 
 class LidarData:
     def __init__(self,FSA,LSA,CS,Speed,TimeStamp,Confidence_i,Angle_i,Distance_i):
@@ -79,13 +80,12 @@ def start_lidar_distance(haptic, distance_mode):
                 # off_counter = 0
                 # print(len(distances))
                 # print(confidences)
-                for dist in distances:
-                    if (dist*10 > 50 and dist*10 <= distance_mode_map[distance_mode.value]):
+                for i, dist in enumerate(distances):
+                    if (dist*10 >= distance_mode_min_map[distance_mode.value] and dist*10 <= distance_mode_map[distance_mode.value] and confidences[i] <= 230):
                     #     off_counter += 1 if (off_counter <= 500) else 0
                     # else:
                         # print("Dist: " + str(dist*10))
                         on_counter += 1 if (on_counter <= 100) else 0
-                # print(on_counter)
                 counter_average.append(on_counter)
                 counter_average.pop(0)
                 # print(str(on_counter) + " average: " + str(sum(counter_average)/counter_average_len))
